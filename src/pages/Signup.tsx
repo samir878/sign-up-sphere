@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Instagram, Mail, Lock, User, AlertCircle } from "lucide-react";
+import { Instagram, Mail, Lock, User } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
@@ -15,7 +14,7 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     
     if (!email || !password || !username) {
@@ -26,54 +25,22 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
-      // Create the user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            username,
-          },
+      // Insert user data into profiles table
+      const { error } = await supabase.from("profiles").insert([
+        {
+          username,
+          email,
+          password, // ⚠️ Consider hashing before storing!
+          avatar_url: null,
+          created_at: new Date().toISOString(),
         },
-      });
+      ]);
       
-      if (authError) {
-        toast.error(authError.message);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Create a profile in the profiles table
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            { 
-              id: authData.user.id, 
-              username,
-              email,
-              avatar_url: null,
-              created_at: new Date().toISOString()
-            }
-          ]);
-          
-        if (profileError) {
-          console.error("Error creating profile:", profileError);
-          
-          // Check if the error might be related to the table not existing
-          if (profileError.code === "42P01") {
-            toast.error("The profiles table doesn't exist. Please create it in your Supabase dashboard.");
-          } else {
-            toast.error(`Profile creation error: ${profileError.message || "Unknown error"}`);
-          }
-          
-          // Still show success since the auth account was created
-          toast.success("Auth account created, but there was an issue setting up your profile. You can still log in.");
-          navigate("/login");
-        } else {
-          toast.success("Account created successfully! Please check your email to verify your account.");
-          navigate("/login");
-        }
+      if (error) {
+        toast.error(`Signup failed: ${error.message}`);
+      } else {
+        toast.success("Account created successfully! You can now log in.");
+        navigate("/login");
       }
     } catch (error) {
       console.error("Signup error:", error);
@@ -98,62 +65,43 @@ const Signup = () => {
         
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
-            <div className="space-y-2">
-              <div className="relative">
-                <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Username"
-                  className="pl-10"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
+            <div className="relative">
+              <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Username"
+                className="pl-10"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
             </div>
             
-            <div className="space-y-2">
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  className="pl-10"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+            <div className="relative">
+              <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <Input
+                type="email"
+                placeholder="Email"
+                className="pl-10"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             
-            <div className="space-y-2">
-              <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  className="pl-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              <Input
+                type="password"
+                placeholder="Password"
+                className="pl-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Creating account..." : "Sign up"}
             </Button>
           </form>
-          
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">
-                  By signing up, you agree to our Terms
-                </span>
-              </div>
-            </div>
-          </div>
         </CardContent>
         
         <CardFooter className="flex justify-center">
