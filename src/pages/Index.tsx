@@ -1,16 +1,9 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Instagram, GitFork } from "lucide-react";
+import { Instagram } from "lucide-react";
 
 const Index = () => {
   const { user, signOut } = useAuth();
-
-  // Function to handle repository clone action
-  const handleCloneRepo = () => {
-    // You can replace this URL with your actual GitHub repository URL
-    window.open("https://github.com/yourusername/instagram-clone", "_blank");
-  };
 
   if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
     return (
@@ -39,13 +32,7 @@ const Index = () => {
             <Instagram className="h-8 w-8" />
             <h1 className="text-xl font-bold">Instagram Clone</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={handleCloneRepo} variant="outline" className="flex items-center gap-2">
-              <GitFork className="h-4 w-4" />
-              Clone Repository
-            </Button>
-            <Button onClick={signOut} variant="outline">Sign Out</Button>
-          </div>
+          <Button onClick={signOut} variant="outline">Sign Out</Button>
         </div>
       </header>
       
