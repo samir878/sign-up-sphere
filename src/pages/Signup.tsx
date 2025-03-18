@@ -39,6 +39,7 @@ const Signup = () => {
       
       if (authError) {
         toast.error(authError.message);
+        setIsLoading(false);
         return;
       }
       
@@ -58,7 +59,17 @@ const Signup = () => {
           
         if (profileError) {
           console.error("Error creating profile:", profileError);
-          toast.error("Account created, but there was an issue setting up your profile");
+          
+          // Check if the error might be related to the table not existing
+          if (profileError.code === "42P01") {
+            toast.error("The profiles table doesn't exist. Please create it in your Supabase dashboard.");
+          } else {
+            toast.error(`Profile creation error: ${profileError.message || "Unknown error"}`);
+          }
+          
+          // Still show success since the auth account was created
+          toast.success("Auth account created, but there was an issue setting up your profile. You can still log in.");
+          navigate("/login");
         } else {
           toast.success("Account created successfully! Please check your email to verify your account.");
           navigate("/login");
